@@ -1,0 +1,9 @@
+setup.py
+dictccpy.egg-info/PKG-INFO
+dictccpy.egg-info/SOURCES.txt
+dictccpy.egg-info/dependency_links.txt
+dictccpy.egg-info/requires.txt
+dictccpy.egg-info/top_level.txt
+dictcc/__init__.py
+dictcc/dictcc.py
+scripts/dictcc.py

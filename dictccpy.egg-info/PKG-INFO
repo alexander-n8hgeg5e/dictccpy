@@ -1,5 +1,5 @@
 Metadata-Version: 1.0
-Name: dict.cc.py
+Name: dictccpy
 Version: 2.0.1
 Summary: Unofficial dict.cc command line interface
 Home-page: http://github.com/rbaron/dict.cc.py

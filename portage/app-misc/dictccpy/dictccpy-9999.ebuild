@@ -11,7 +11,7 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
-DEPEND=""
+DEPEND=">=dev-python/beautifulsoup4-4.6.0"
 RDEPEND="${DEPEND}"
 
 src_install(){

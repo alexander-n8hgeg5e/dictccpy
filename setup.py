@@ -7,5 +7,5 @@ setup(
       url="http://github.com/rbaron/dict.cc.py",
       install_requires=["beautifulsoup4"],
       packages=find_packages(),
-      scripts=["scripts/dictcc.py"]
+      scripts=["scripts/dictccpy"]
      )

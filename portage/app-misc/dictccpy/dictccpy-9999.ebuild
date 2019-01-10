@@ -12,7 +12,7 @@ KEYWORDS="~amd64 ~x86"
 IUSE=""
 
 DEPEND=">=dev-python/beautifulsoup-4.5"
-RDEPEND="${DEPEND} app-misc/dictcc"
+#RDEPEND="${DEPEND} app-misc/dictcc"
 
 src_install(){
     distutils-r1_src_install

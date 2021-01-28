@@ -1,0 +1,169 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import argparse
+
+from dictcc import Dict, AVAILABLE_LANGUAGES
+
+default_inlang_for_outlang =    {
+                                    "de":"en",
+                                    "en":"de",
+                                    "fr":"en",
+                                }
+
+default_outlang_for_inlang = default_inlang_for_outlang
+
+LINE_LENGTH = 60
+
+def ensure_unicode(string):
+    if hasattr(string, "decode"):
+        return string.decode("utf-8")
+    return string
+
+def gen_possible_lang_args():
+    choices=[]
+    for i in AVAILABLE_LANGUAGES.keys():
+        for j in AVAILABLE_LANGUAGES.keys():
+            if not i==j:
+                choices.append(i+j)
+        choices.append(i)
+    return choices
+
+def parse_args():
+    desc =  "Unofficial CLI for dict.cc\n"\
+            "It supports translations between the following languages:\n    "\
+            + ", ".join(AVAILABLE_LANGUAGES)+"\n"
+    
+    a = argparse.ArgumentParser(desc)
+    a.add_argument  ( 
+                        "language",
+                        type = str,
+                        help =  (   "language syntax := "
+                                    "[::in-lang-char::]{2}([::out-lang-char::]{2})? "
+                                    "(in|out)-lang-chars := [a-z]"
+                                ),
+                        nargs ="?",
+                        default = "en"
+                    ),
+    a.add_argument  (
+                        "word",
+                        type =  ensure_unicode,
+                        help =  ( 
+                                    "Word or phrase to translate.\n"
+                                    #"Hint: Spaces need to be escaped from your shell.\n"
+                                ),
+                        nargs ="*",
+                        default = "bier"
+                    )
+    a.add_argument( "-i", "--input-language" , default=None )
+    a.add_argument( "-o", "--output-language", default=None )
+    a.add_argument( "-m", "--max-results",  type=int, default=10 )
+
+
+    args = a.parse_args()
+    
+    # if only one pos arg
+    # probably it's the word and not the language
+    if len(argparse._sys.argv) <= 2:
+        args.word=args.language
+        args.language=a.get_default("language")
+
+    inp_lang, outp_lang = parse_lang_args(args.language,args.input_language,args.output_language)
+    args.input_language=inp_lang
+    args.output_language=outp_lang
+    if type(args.word) is list:
+        args.word = " ".join(args.word)
+    return args
+
+def parse_lang_args(lang,inlang,outlang):
+    if not inlang is None and not outlang is None:
+        return inlang,outlang
+    elif not inlang is None and outlang is None:
+        return inlang,default_outlang_for_inlang[inlang]
+    elif inlang is None and not outlang is None:
+        return default_inlang_for_outlang[outlang],outlang
+
+    len_lang=len(lang)
+
+    if not len_lang in (2,4):
+        raise_lang_args_parse_error_exception()
+    if len_lang == 4:
+        return check_iolang(lang[:2],lang[2:])
+    # len_lang==2 is assumed to be outlang
+    return check_iolang(default_inlang_for_outlang[lang],lang)
+
+def check_iolang(inlang,outlang):
+    if not inlang in AVAILABLE_LANGUAGES.keys():
+        raise_lang_args_parse_error_exception()
+    if not outlang in AVAILABLE_LANGUAGES.keys():
+        raise_lang_args_parse_error_exception()
+    return inlang,outlang
+
+def raise_lang_args_parse_error_exception():
+    from pprint import pformat
+    raise Exception (
+                        "\n"
+                        "########################################\n"
+                        "##  ERROR:  Invalid language string!  ##\n"
+                        "########################################\n"
+                        "The program don't know what language\n"
+                        "you want to translate into what\n"
+                        "another language.\n"
+                        "Call the prog like so:\n"
+                        "dictccpy aabb \"word or phrase\"\n"
+                        "whereby \"aa\" is the inputlang  (2 chars)\n"
+                        "whereby \"bb\" is the outputlang (2 chars)\n"
+                        "Specifying only the outputlang into this\n"
+                        "\"non-possitional\" argument is possible, too.\n"
+                        "Otherwise via -i it is possible to specify\n"
+                        "only the input language.\n"
+                        "See \"dictccpy --help\" for overview.\n"
+                        "---------------------------------\n"
+                        "Available Languages and defaults:\n"
+                        "---------------------------------\n"
+                        "\nAVAILABLE_LANGUAGES:\n" + pformat(AVAILABLE_LANGUAGES)+"\n"
+                        + "\ndefault_outlang_for_inlang:\n" + pformat(default_inlang_for_outlang)+"\n"
+                        + "\ndefault_inlang_for_outlang:\n" + pformat(default_outlang_for_inlang)
+                    )
+
+def print_header(from_lang, to_lang):
+    print(u"{}{}{}\n{}{}{}".format(
+        from_lang,
+        " "*(LINE_LENGTH-len(from_lang)),
+        to_lang,
+        "="*len(from_lang),
+        " "*(LINE_LENGTH-len(from_lang)),
+        "="*len(to_lang),
+    ))
+
+def print_translation(input_word, output_word):
+    print(u"{}{}{}".format(input_word,
+                          "."*(LINE_LENGTH-len(input_word)),
+                          output_word))
+
+def run():
+    args = parse_args()
+
+    result = Dict.translate(args.word,
+                            args.input_language,
+                            args.output_language)
+
+    if not result.n_results:
+        print("No results found for {} ({} <-> {}).".format(
+            args.word, args.input_language, args.output_language))
+        return
+    else:
+        print("Showing {} of {} result(s)\n".format(
+            min(args.max_results, result.n_results), result.n_results))
+
+    print_header(result.from_lang, result.to_lang)
+
+    for i, (input_word, output_word) in enumerate(result.translation_tuples):
+        print_translation(input_word, output_word)
+        if i == args.max_results:
+            break
+
+if __name__ == "__main__":
+    run()
+
+

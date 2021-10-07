@@ -11,4 +11,4 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
-DEPEND=">=dev-python/beautifulsoup-4.5"
+DEPEND="dev-python/beautifulsoup4"
